@@ -24,11 +24,20 @@ student studentInfo[MAX_STUDENT_COUNT];
 uint32_t ulRecordCount = 0;
 
 /* locals */
+static int studentCompareByName(const void *pInputA, const void *pInputB);
+static int studentCompareByRank(const void *pInputA, const void *pInputB);
+static int studentCompareByRollNumber(const void *pInputA, const void *pInputB);
 
 /* forward declaration */
 bool studentAdd(student* pstInfo);
 bool studentGetCount(uint32_t* pulCount);
 bool studentGetAvgMarksOfSubjects(uint32_t* pucAvgMarks);
+bool studentSearchByName(uint8_t *pcName);
+void studentSortByName(void);
+void studentSortByRank(void);
+void studentSortByRollNumber(void);
+bool studentDeleteByName(uint8_t* pucName);
+bool studentDeleteByRollNumber(uint32_t ulRoll);
 /*******************************************************************************
 *
 * studentAdd - function to add student info.
@@ -133,4 +142,303 @@ bool studentGetAvgMarksOfSubjects(uint32_t* pucAvgMarks)
         return blReturnStatus;
     }
     
+/*******************************************************************************
+*
+* studentSearchByName - search the name on the list
+* DESCRIPTION
+* The function is used to search a name from the list
+* 
+* PARAMETER : pcName - input name
+*
+* GLOBALS   : N/A
+*
+* RETURNS   : True - on success , false - on failure
+*
+* ERRNO     : N/A
+*/ 
+bool studentSearchByName(uint8_t *pcName)
+    {
+    uint32_t ulIndex = 0;
+    uint8_t ucIndex =0;
+    bool blReturnStatus = false;
+    if(NULL != pcName)
+        {
+        for(ulIndex = 0; ulIndex < ulRecordCount; ulIndex++)
+            {
+            if(strncmp(studentInfo[ulIndex].ucStudentName, 
+             pcName, strlen(pcName)))
+                {
+                printf("|%d|%s|%.02f|%.02f|%.02f|%.02f|%.02f|%.02f|"\
+                    "%.02f|%.02f|%.02f|%.02f|%02f|%.02f\n",
+                studentInfo[ulIndex].ulRollNumber,
+                studentInfo[ulIndex].ucStudentName,
+                studentInfo[ulIndex].fMarkInfo[ucIndex++],
+                studentInfo[ulIndex].fMarkInfo[ucIndex++],
+                studentInfo[ulIndex].fMarkInfo[ucIndex++],
+                studentInfo[ulIndex].fMarkInfo[ucIndex++],
+                studentInfo[ulIndex].fMarkInfo[ucIndex++],
+                studentInfo[ulIndex].fMarkInfo[ucIndex++],
+                studentInfo[ulIndex].fMarkInfo[ucIndex++],
+                studentInfo[ulIndex].fMarkInfo[ucIndex++],
+                studentInfo[ulIndex].fMarkInfo[ucIndex++],
+                studentInfo[ulIndex].fMarkInfo[ucIndex++],
+                studentInfo[ulIndex].fSum,
+                studentInfo[ulIndex].fAverage);
+
+                blReturnStatus = true;
+                }
+            }
+        }
+        return blReturnStatus;
+    }
+/*******************************************************************************
+*
+* studentCompareByName - compare the student name
+* DESCRIPTION
+* The supportive function used to compare student name in the list.
+* 
+* PARAMETER : pInputA - void pointer
+*             pInputB - void pointer
+* GLOBALS   : N/A
+*
+* RETURNS   : True - on success , false - on failure
+*
+* ERRNO     : N/A
+*/ 
+static int studentCompareByName(const void *pInputA, const void *pInputB)
+    {
+    student *psStudentA = (const struct student *)pInputA;
+    student *psStudentB = (const struct student *)pInputB;
+    return strcmp((const char *)psStudentA->ucStudentName, 
+    (const char *)psStudentB->ucStudentName); 
+    }
+/*******************************************************************************
+*
+* studentSortByName - sort the array by name
+* DESCRIPTION
+* The function is used to sort the student list by using name
+* 
+* PARAMETER : pcName - input name
+*
+* GLOBALS   : N/A
+*
+* RETURNS   : True - on success , false - on failure
+*
+* ERRNO     : N/A
+*/
+void studentSortByName(void)
+    {
+    uint32_t ulIndex =0;
+    qsort(studentInfo, ulRecordCount, sizeof(student), studentCompareByName);
+    printf("Sorted By Name \n");
+    for(ulIndex = 0; ulIndex < ulRecordCount; ulIndex++)
+        {
+         printf("Roll Number %d Name : %s",
+            studentInfo[ulIndex].ulRollNumber,
+            studentInfo[ulIndex].ucStudentName);
+        }
+    } 
+    /*******************************************************************************
+*
+* studentCompareByRollNumber - compare the student rollnumber
+* DESCRIPTION
+* The supportive function used to compare student rol number in the list.
+* 
+* PARAMETER : pInputA - void pointer
+*             pInputB - void pointer
+* GLOBALS   : N/A
+*
+* RETURNS   : True - on success , false - on failure
+*
+* ERRNO     : N/A
+*/ 
+static int studentCompareByRollNumber(const void *pInputA, const void *pInputB)
+    {
+    student *psStudentA = (const struct student *)pInputA;
+    student *psStudentB = (const struct student *)pInputB;
+    return (psStudentA ->ulRollNumber - psStudentB ->ulRollNumber);
+    }
+/*******************************************************************************
+*
+* studentSortByName - sort the array by name
+* DESCRIPTION
+* The function is used to sort the student list by using name
+* 
+* PARAMETER : pcName - input name
+*
+* GLOBALS   : N/A
+*
+* RETURNS   : True - on success , false - on failure
+*
+* ERRNO     : N/A
+*/
+void studentSortByRollNumber(void)
+    {
+    uint32_t ulIndex =0;
+    qsort(studentInfo, ulRecordCount, sizeof(student), 
+    studentCompareByRollNumber);
+    printf("Sorted By RollNumber \n");
+    for(ulIndex = 0; ulIndex < ulRecordCount; ulIndex++)
+        {
+         printf("Roll Number %d Name : %s",
+            studentInfo[ulIndex].ulRollNumber,
+            studentInfo[ulIndex].ucStudentName);
+        }
+    } 
+    /*******************************************************************************
+*
+* studentCompareByRank - compare the student rank
+* DESCRIPTION
+* The supportive function used to compare student rank in the list.
+* 
+* PARAMETER : pInputA - void pointer
+*             pInputB - void pointer
+* GLOBALS   : N/A
+*
+* RETURNS   : True - on success , false - on failure
+*
+* ERRNO     : N/A
+*/ 
+static int studentCompareByRank(const void *pInputA, const void *pInputB)
+    {
+    student *psStudentA = (const struct student *)pInputA;
+    student *psStudentB = (const struct student *)pInputB;
+    return (psStudentA ->fSum - psStudentB ->fSum);
+    }
+/*******************************************************************************
+*
+* studentSortByName - sort the array by name
+* DESCRIPTION
+* The function is used to sort the student list by using name
+* 
+* PARAMETER : pcName - input name
+*
+* GLOBALS   : N/A
+*
+* RETURNS   : True - on success , false - on failure
+*
+* ERRNO     : N/A
+*/
+void studentSortByRank(void)
+    {
+    uint32_t ulIndex =0;
+    qsort(studentInfo, ulRecordCount, sizeof(student), studentCompareByRank);
+    printf("Sorted By Name \n");
+    for(ulIndex = 0; ulIndex < ulRecordCount; ulIndex++)
+        {
+         printf("Roll Number %d Name : %s mark: %.02f",
+            studentInfo[ulIndex].ulRollNumber,
+            studentInfo[ulIndex].ucStudentName,
+            studentInfo[ulIndex].fSum
+        );
+        }
+    }
+/*******************************************************************************
+*
+* studentDeleteAll - delete all student record
+* DESCRIPTION
+* The function is used to delete all student record
+* 
+* PARAMETER : N/A
+*
+* GLOBALS   : N/A
+*
+* RETURNS   : N/A
+*
+* ERRNO     : N/A
+*/
+bool studentDeleteAll(void)
+    {
+    ulRecordCount = 0;
+    memset(&studentInfo, 0, sizeof(student));
+    } 
+
+/*******************************************************************************
+*
+* studentDeleteByName - delete student record by name
+* DESCRIPTION
+* The function is delete student by name
+* 
+* PARAMETER : N/A
+*
+* GLOBALS   : N/A
+*
+* RETURNS   : N/A
+*
+* ERRNO     : N/A
+*/
+bool studentDeleteByName(uint8_t* pucName)
+    {
+    uint32_t ulIndex = 0;
+    uint32_t ulJindex = 0;
+    uint8_t ucIndex = 0;
+    uint8_t ucFound = 0;
+
+    bool blReturnStatus = false;
+    if(NULL != pucName)
+        {
+        for(ulIndex = 0; ulIndex < ulRecordCount; ulIndex++, ulJindex++)
+            {
+            if(0 == strncmp(studentInfo[ulIndex].ucStudentName, 
+             pucName, strlen(pucName)))
+                {
+                  ucFound = 1 ;
+                  ulIndex++;
+                  ulRecordCount --;
+                } 
+                if(ucFound == 1)
+                    {
+                    memcpy(&studentInfo[ulJindex],&studentInfo[ulIndex],
+                    sizeof(studentInfo));
+                    }
+                }
+                if(ucFound == 1)
+                blReturnStatus = true;
+            }
+            return  blReturnStatus;
+    }
+
+/*******************************************************************************
+*
+* studentDeleteByRollNumber - delete student record by ROLL NUMBER
+* DESCRIPTION
+* The function is delete student by ROLLNUMBER
+* 
+* PARAMETER : N/A
+*
+* GLOBALS   : N/A
+*
+* RETURNS   : N/A
+*
+* ERRNO     : N/A
+*/
+bool studentDeleteByRollNumber(uint32_t ulRoll)
+    {
+    uint32_t ulIndex = 0;
+    uint32_t ulJindex = 0;
+    uint8_t ucIndex = 0;
+    uint8_t ucFound = 0;
+
+    bool blReturnStatus = false;
+    if(0 != ulRoll)
+        {
+        for(ulIndex = 0; ulIndex < ulRecordCount; ulIndex++, ulJindex++)
+            {
+            if(ulRoll == studentInfo[ulIndex].ulRollNumber)
+                {
+                  ucFound = 1 ;
+                  ulIndex++;
+                  ulRecordCount --;
+                } 
+                if(ucFound == 1)
+                    {
+                    memcpy(&studentInfo[ulJindex],&studentInfo[ulIndex],
+                    sizeof(studentInfo));
+                    }
+                }
+                if(ucFound == 1)
+                blReturnStatus = true;
+            }
+            return  blReturnStatus;
+    }
     

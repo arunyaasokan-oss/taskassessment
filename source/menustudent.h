@@ -11,6 +11,10 @@
 #define MENU_ITEM_LEN       50U
 #define MENU_START_INDEX    0U
 #define MENU_END_INDEX      4U
+#define MENU_LIST_START     0U
+#define MENU_LIST_END       4U
+#define MENU_DELETE_START   0U
+#define MENU_DELETE_END     3U
 
 /* typedef */
 typedef bool (*pvMenuOperationHandler)(void);
@@ -20,6 +24,20 @@ typedef struct
     char cMenuLabel[MENU_ITEM_LEN];
     pvMenuOperationHandler pMenuOperation;
 }STUDENT_MENU;
+
+typedef struct 
+{
+    uint32_t ulIndex;
+    char cMenuLabel[MENU_ITEM_LEN];
+    pvMenuOperationHandler pMenuOperation;
+}STUDENT_LIST;
+
+typedef struct 
+{
+    uint32_t ulIndex;
+    char cMenuLabel[MENU_ITEM_LEN];
+    pvMenuOperationHandler pMenuOperation;
+}STUDENT_DEL;
 
 /* function declaration */
 extern bool menuMain(void);

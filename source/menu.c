@@ -45,9 +45,21 @@ enum _STUDMENU_ENUM
     STUDMENU_OVERVIEW = 1,
     MENU_ADD,
     MENU_LIST,
-    MENU_DELETE,
+    MENU_DELETE,   
 };
-
+enum _STUDENTLIST_ENUM
+{
+    STUDENTLIST_SEARCH = 1,
+    STUDENTLIST_SORT_BYNAME,
+    STUDENTLIST_SORT_BYROLLNO,
+    STUDENTLIST_SORT_BYRANK,
+};
+enum _STUDENTDEL_ENUM
+{
+    STUDENTDEL_BYNAME = 1,
+    STUDENTDEL_BYROLLNO,
+    STUDENTDEL_ALL
+};
 
 const STUDENT_MENU stMenuItem[] =
     {
@@ -67,7 +79,41 @@ const STUDENT_MENU stMenuItem[] =
          .cMenuLabel = "Student Delete",
          .pMenuOperation = menuDeleteStudent
         },
-        
+    };
+
+const STUDENT_LIST stMenuList[] =
+    {
+        {.ulIndex = STUDENTLIST_SEARCH,
+         .cMenuLabel = "Student Search",
+         .pMenuOperation = menuListSearchByName
+        },
+        {.ulIndex = STUDENTLIST_SORT_BYNAME,
+         .cMenuLabel = "SortByName",
+         .pMenuOperation = menuListSortByName
+        },
+        {.ulIndex = STUDENTLIST_SORT_BYROLLNO,
+         .cMenuLabel = "Sort By RollNo",
+         .pMenuOperation = menuListSortByRoll
+        },
+        {.ulIndex = STUDENTLIST_SORT_BYRANK,
+         .cMenuLabel = "Sort By Rank",
+         .pMenuOperation = studentSortByRank
+        },
+    };
+const STUDENT_DEL stMenuDel[] =
+    {
+        {.ulIndex = STUDENTDEL_BYNAME,
+         .cMenuLabel = "Student overview",
+         .pMenuOperation = menuDeleteByName
+        },
+        {.ulIndex = STUDENTDEL_BYROLLNO,
+         .cMenuLabel = "Student Add",
+         .pMenuOperation = menuDeleteByRoll
+        },
+        {.ulIndex = STUDENTDEL_ALL,
+         .cMenuLabel = "Student List",
+         .pMenuOperation = menuDeleteAll
+        },
     };
 /* forward declaration */
 bool menuMain(void);
@@ -359,11 +405,130 @@ float menuGetmark
         }
         return fMarkInfo;
     }
+/*******************************************************************************
+*
+* menuListStudent - Show the menulist of the student
+*
+* DESCRIPTION
+* The function is used to show the menu list of the student , search, sort by
+* name, sort by roll number, sort by rank
+* 
+* PARAMETER : N/A
+*
+* GLOBALS   : N/A
+*
+* RETURNS   : mark will be returned
+*
+* ERRNO     : N/A
+*/
 static bool menuListStudent(void)
     {
-
+    uint32_t ulChoice = 0;
+    while (1)
+        {
+        if (true == DisplayMenu(stMenuList))
+            {
+            ulChoice = GetChoiceFromUser();
+            printf("%d\n\n", ulChoice);
+            if ((MENU_LIST_START < ulChoice) && (MENU_LIST_END > ulChoice))
+                {
+                ulChoice -=1;
+                stMenuList[ulChoice].pMenuOperation();
+                }
+            else
+                {
+                printf("Invalid choice exiting from menu...\n");
+                break;
+                }
+            }
+        }
+        return true;
     }
 static bool menuDeleteStudent(void)
     {
+    uint32_t ulChoice = 0;
+    while (1)
+        {
+        if (true == DisplayMenu(stMenuDel))
+            {
+            ulChoice = GetChoiceFromUser();
+            printf("%d\n\n", ulChoice);
+            if ((MENU_DELETE_START < ulChoice) && (MENU_DELETE_END > ulChoice))
+                {
+                ulChoice -=1;
+                stMenuDel[ulChoice].pMenuOperation();
+                }
+            else
+                {
+                printf("Invalid choice exiting from menu...\n");
+                break;
+                }
+            }
+        }
+        return true;
+    }
 
+static bool menuDeleteAll(void)
+    {
+    studentDeleteAll();
+    }
+bool menuListSearchByName(void)
+    {
+    bool blReturnStatus = false;
+    char *cNameBuff[MAX_STUDENT_NAME];
+    if(true == menuGetStudentName(cNameBuff))
+        {
+        if(false == studentSearchByName(cNameBuff))
+            {
+             printf("Record not found\n");
+            }
+        else
+            {
+            blReturnStatus = true;   
+            }   
+        }
+    return blReturnStatus;
+    }
+static bool menuListSortByName(void)
+    {
+    studentSortByName();
+    }
+static bool menuListSortByRoll(void)
+    {
+    studentSortByRollNumber();  
+    }
+static bool menuListSortByRank(void)
+    {
+    studentSortByRank();
+    }
+static bool menuDeleteByName(void)
+    {
+    char *cNameBuff[MAX_STUDENT_NAME];
+    if(true == menuGetStudentName(cNameBuff))
+        {
+        if(true == studentDeleteByName(cNameBuff))
+            {
+            printf("record deleted \n");   
+            }
+        else
+            {
+            printf("record not found \n");
+            }
+        }
+    }
+
+static bool menuDeleteByRoll(void)
+    {
+    int32_t ulRollNumber = 0;
+    ulRollNumber = menuGetRollNumber();
+        {
+        if(true == studentDeleteByRollNumber(ulRollNumber))
+            {
+            printf("record deleted \n");
+            }
+        else
+            {
+            printf("record not found \n");
+            }
+        }
     }

@@ -27,4 +27,10 @@ extern student studentInfo[MAX_STUDENT_COUNT];
 extern bool studentAdd(student* pstInfo);
 extern bool studentGetCount(uint32_t* pulCount);
 extern bool studentGetAvgMarksOfSubjects(uint32_t* pucAvgMarks);
+extern bool studentSearchByName(uint8_t *pcName);
+extern void studentSortByName(void);
+extern void studentSortByRank(void);
+extern void studentSortByRollNumber(void);
+extern bool studentDeleteByName(uint8_t* pucName);
+extern bool studentDeleteByRollNumber(uint32_t ulRoll);
 #endif                                                         /*__INCstudenth*/
