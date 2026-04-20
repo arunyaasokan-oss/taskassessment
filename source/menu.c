@@ -39,7 +39,13 @@ static bool menuListStudent(void);
 static bool menuDeleteStudent(void);
 static bool DisplayMenu(const STUDENT_MENU *stMenuItemPass);
 static uint32_t GetChoiceFromUser(void);
-
+static bool menuListSearchByName(void);
+static bool menuListSortByName(void);
+static bool menuListSortByRoll(void);
+static bool menuDeleteByRoll(void);
+static bool menuDeleteByName(void);
+static bool menuDeleteAll(void);
+static bool menuListSortByRank(void);
 enum _STUDMENU_ENUM
 {
     STUDMENU_OVERVIEW = 1,
@@ -97,7 +103,7 @@ const STUDENT_LIST stMenuList[] =
         },
         {.ulIndex = STUDENTLIST_SORT_BYRANK,
          .cMenuLabel = "Sort By Rank",
-         .pMenuOperation = studentSortByRank
+         .pMenuOperation = menuListSortByRank
         },
     };
 const STUDENT_DEL stMenuDel[] =
@@ -141,7 +147,7 @@ bool menuMain(void)
         if (true == DisplayMenu(stMenuItem))
         {
             ulChoice = GetChoiceFromUser();
-            printf("%d\n\n", ulChoice);
+            printf("%u\n\n", ulChoice);
             if ((MENU_START_INDEX < ulChoice) && (MENU_END_INDEX > ulChoice))
             {
                 ulChoice -=1;
@@ -183,7 +189,7 @@ static uint32_t GetChoiceFromUser(void)
 
     if (NULL != fgets(cChoiceBuffer, CHOICE_LEN, stdin))
         {
-        sscanf(cChoiceBuffer, "%d", &ulChoice);
+        sscanf(cChoiceBuffer, "%u", &ulChoice);
 
         if (NULL == strchr(cChoiceBuffer, '\n') )
             {
@@ -212,16 +218,16 @@ static uint32_t GetChoiceFromUser(void)
 static bool DisplayMenu
     (
     const STUDENT_MENU *stMenuItemPass
-    )
+    )       
     {
-    uint32_t ulIndex = 0;
+    uint32_t ulIndex = 0;                              
     bool blReturnValue = false;
 
     if (NULL != stMenuItemPass)
     {
         for (ulIndex = 0; ulIndex < MENU_ITEMS; ulIndex++)
         {
-            printf("%d .%s\n", stMenuItemPass[ulIndex].ulIndex,
+            printf("%u .%s\n", stMenuItemPass[ulIndex].ulIndex,
                    stMenuItemPass[ulIndex].cMenuLabel);
         }
 
@@ -258,8 +264,8 @@ static bool menuStudentOverview(void)
     else
         {
             studentGetAvgMarksOfSubjects(&ulAverageMark);
-            printf("Total Record Count = %d\n", ulActiveCount);
-            printf("Average Mark = %.02d\n",ulAverageMark);
+            printf("Total Record Count = %u\n", ulActiveCount);
+            printf("Average Mark = %u\n",ulAverageMark);
             blReturnStatus = true;
         }
     return blReturnStatus;
@@ -283,10 +289,11 @@ static bool menuAddStudent(void)
     {
     uint8_t ucIndex = 0;
     student pstInfo;
+    bool blReturnStatus = false;
     char LabelBuff[LABEL_MAX];
 
     memset(&pstInfo, 0, sizeof(student));
-    menuGetStudentName(pstInfo.ucStudentName);
+    menuGetStudentName((const char *)pstInfo.ucStudentName);
     pstInfo.ulRollNumber = menuGetRollNumber();
 
     for(ucIndex = 0; ucIndex < NO_OF_SUBJECT; ucIndex++)
@@ -297,7 +304,11 @@ static bool menuAddStudent(void)
         ucIndex + 1);
         pstInfo.fMarkInfo[ucIndex] = menuGetmark(LabelBuff);
         }
+    
     studentAdd(&pstInfo);
+    blReturnStatus = true;
+
+    return blReturnStatus;
     }
 /*******************************************************************************
 *
@@ -382,7 +393,7 @@ int32_t menuGetRollNumber(void)
 */
 float menuGetmark
     (
-    char *cShowLabel
+    const char *cShowLabel
     )
     {
     char cMarkBuff[MARK_LEN] = {0};   
@@ -429,7 +440,7 @@ static bool menuListStudent(void)
         if (true == DisplayMenu(stMenuList))
             {
             ulChoice = GetChoiceFromUser();
-            printf("%d\n\n", ulChoice);
+            printf("%u\n\n", ulChoice);
             if ((MENU_LIST_START < ulChoice) && (MENU_LIST_END > ulChoice))
                 {
                 ulChoice -=1;
@@ -444,6 +455,21 @@ static bool menuListStudent(void)
         }
         return true;
     }
+/*******************************************************************************
+*
+* menuDeleteStudent - shows the delete menu.
+* DESCRIPTION
+* The function used show the deleted menu - delete by name, delete by rollNo,
+* delete all.
+*
+* PARAMETER : N/A
+*
+* GLOBALS   : N/A
+*
+* RETURNS   : N/A
+*
+* ERRNO     : N/A
+*/
 static bool menuDeleteStudent(void)
     {
     uint32_t ulChoice = 0;
@@ -452,7 +478,7 @@ static bool menuDeleteStudent(void)
         if (true == DisplayMenu(stMenuDel))
             {
             ulChoice = GetChoiceFromUser();
-            printf("%d\n\n", ulChoice);
+            printf("%u\n\n", ulChoice);
             if ((MENU_DELETE_START < ulChoice) && (MENU_DELETE_END > ulChoice))
                 {
                 ulChoice -=1;
@@ -467,12 +493,42 @@ static bool menuDeleteStudent(void)
         }
         return true;
     }
-
+/*******************************************************************************
+*
+* menuDeleteAll - delete all record.
+* DESCRIPTION
+* The function used delete all record stored
+* 
+* PARAMETER : N/A
+*
+* GLOBALS   : N/A
+*
+* RETURNS   : N/A
+*
+* ERRNO     : N/A
+*/
 static bool menuDeleteAll(void)
     {
+    bool blReturnStatus = false;
     studentDeleteAll();
+    blReturnStatus =  true;
+    return blReturnStatus;
     }
-bool menuListSearchByName(void)
+/*******************************************************************************
+*
+* menuListSearchByName - search by name.
+* DESCRIPTION
+* The function used to search a record by name
+* 
+* PARAMETER : N/A
+*
+* GLOBALS   : N/A
+*
+* RETURNS   : N/A
+*
+* ERRNO     : N/A
+*/
+static bool menuListSearchByName(void)
     {
     bool blReturnStatus = false;
     char *cNameBuff[MAX_STUDENT_NAME];
@@ -489,34 +545,106 @@ bool menuListSearchByName(void)
         }
     return blReturnStatus;
     }
+/*******************************************************************************
+*
+* menuListSortByName - sort by Name.
+* DESCRIPTION
+* The function used to sort the list by name
+* 
+* PARAMETER : N/A
+*
+* GLOBALS   : N/A
+*
+* RETURNS   : N/A
+*
+* ERRNO     : N/A
+*/
 static bool menuListSortByName(void)
     {
     studentSortByName();
     }
+/*******************************************************************************
+*
+* menuListSortByRoll - sort by Roll number.
+* DESCRIPTION
+* The function used to sort the list by roll number
+* 
+* PARAMETER : N/A
+*
+* GLOBALS   : N/A
+*
+* RETURNS   : N/A
+*
+* ERRNO     : N/A
+*/
 static bool menuListSortByRoll(void)
     {
     studentSortByRollNumber();  
     }
+/*******************************************************************************
+*
+* menuListSortByRank - sort by rank.
+* DESCRIPTION
+* The function used to sort the list by rank
+* 
+* PARAMETER : N/A
+*
+* GLOBALS   : N/A
+*
+* RETURNS   : N/A
+*
+* ERRNO     : N/A
+*/
 static bool menuListSortByRank(void)
     {
     studentSortByRank();
     }
+/*******************************************************************************
+*
+* menuDeleteByName - menu used for delete record by name.
+* DESCRIPTION
+* The function used to delete a student by name
+* 
+* PARAMETER : N/A
+*
+* GLOBALS   : N/A
+*
+* RETURNS   : N/A
+*
+* ERRNO     : N/A
+*/
 static bool menuDeleteByName(void)
     {
+    bool blReturnStatus = false;
     char *cNameBuff[MAX_STUDENT_NAME];
     if(true == menuGetStudentName(cNameBuff))
         {
         if(true == studentDeleteByName(cNameBuff))
             {
-            printf("record deleted \n");   
+            printf("record deleted \n");  
+            blReturnStatus = true; 
             }
         else
             {
             printf("record not found \n");
             }
         }
+        return blReturnStatus;
     }
-
+/*******************************************************************************
+*
+* menuDeleteByRoll - menu used for delete record by ROLL NUMBER
+* DESCRIPTION
+* The function used to delete a student by ROLLNUMBER
+* 
+* PARAMETER : N/A
+*
+* GLOBALS   : N/A
+*
+* RETURNS   : N/A
+*
+* ERRNO     : N/A
+*/
 static bool menuDeleteByRoll(void)
     {
     int32_t ulRollNumber = 0;

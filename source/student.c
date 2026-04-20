@@ -14,6 +14,7 @@ Search by name - roll number and rank, Delete by name -roll number - all.
 #include <string.h>
 #include <stdbool.h>
 #include <stdint.h>
+#include <stdlib.h>
 #include "studentinc.h"
 
 /* defines */
@@ -32,12 +33,13 @@ static int studentCompareByRollNumber(const void *pInputA, const void *pInputB);
 bool studentAdd(student* pstInfo);
 bool studentGetCount(uint32_t* pulCount);
 bool studentGetAvgMarksOfSubjects(uint32_t* pucAvgMarks);
-bool studentSearchByName(uint8_t *pcName);
+bool studentSearchByName(const uint8_t *pcName);
 void studentSortByName(void);
 void studentSortByRank(void);
 void studentSortByRollNumber(void);
-bool studentDeleteByName(uint8_t* pucName);
+bool studentDeleteByName(const uint8_t* pucName);
 bool studentDeleteByRollNumber(uint32_t ulRoll);
+void studentDeleteAll(void);
 /*******************************************************************************
 *
 * studentAdd - function to add student info.
@@ -60,8 +62,8 @@ bool studentAdd(student* pstInfo)
     uint8_t ucIndex = 0;
     if(pstInfo != NULL)
         {
-        strncpy(studentInfo[ulRecordCount].ucStudentName, 
-        pstInfo->ucStudentName,
+        strncpy((char*)studentInfo[ulRecordCount].ucStudentName, 
+        (char*)pstInfo->ucStudentName,
         sizeof(pstInfo->ucStudentName));
         studentInfo[ulRecordCount].ulRollNumber = pstInfo->ulRollNumber;
 
@@ -104,7 +106,7 @@ bool studentGetCount(uint32_t* pulCount)
     bool ulReturnStatus = false;
     if(NULL!= pulCount)
         {
-        pulCount = ulRecordCount;
+        *pulCount = ulRecordCount;
         ulReturnStatus = true;
         }
         return ulReturnStatus;
@@ -129,14 +131,16 @@ bool studentGetAvgMarksOfSubjects(uint32_t* pucAvgMarks)
     uint32_t ulIndex = 0;
     float fAverageMark = 0.00;
     float fTotalMark = 0.00;
+    uint32_t ulMarks = 0;
     if(NULL != pucAvgMarks)
         {
         for(ulIndex = 0; ulIndex < ulRecordCount; ulIndex++)
             {
             fTotalMark += studentInfo[ulIndex].fAverage;
             }
-        fAverageMark = fTotalMark / ulRecordCount; 
-        pucAvgMarks = (uint32_t)fAverageMark;
+        fAverageMark = fTotalMark / ulRecordCount;
+        ulMarks =  (uint32_t)fAverageMark;
+        *pucAvgMarks = ulMarks;
         blReturnStatus = true;         
         }
         return blReturnStatus;
@@ -156,37 +160,34 @@ bool studentGetAvgMarksOfSubjects(uint32_t* pucAvgMarks)
 *
 * ERRNO     : N/A
 */ 
-bool studentSearchByName(uint8_t *pcName)
+bool studentSearchByName(const uint8_t *pcName)
     {
     uint32_t ulIndex = 0;
-    uint8_t ucIndex =0;
+    uint8_t ucIndex = 0;
+    
     bool blReturnStatus = false;
     if(NULL != pcName)
         {
         for(ulIndex = 0; ulIndex < ulRecordCount; ulIndex++)
             {
-            if(strncmp(studentInfo[ulIndex].ucStudentName, 
-             pcName, strlen(pcName)))
+            if(strncmp((char *)studentInfo[ulIndex].ucStudentName, 
+             (char *)pcName, strlen((char *)pcName)))
                 {
-                printf("|%d|%s|%.02f|%.02f|%.02f|%.02f|%.02f|%.02f|"\
-                    "%.02f|%.02f|%.02f|%.02f|%02f|%.02f\n",
+                ucIndex = 0;
+                printf("|%d|%s|%02f|%.02f\n",
                 studentInfo[ulIndex].ulRollNumber,
                 studentInfo[ulIndex].ucStudentName,
-                studentInfo[ulIndex].fMarkInfo[ucIndex++],
-                studentInfo[ulIndex].fMarkInfo[ucIndex++],
-                studentInfo[ulIndex].fMarkInfo[ucIndex++],
-                studentInfo[ulIndex].fMarkInfo[ucIndex++],
-                studentInfo[ulIndex].fMarkInfo[ucIndex++],
-                studentInfo[ulIndex].fMarkInfo[ucIndex++],
-                studentInfo[ulIndex].fMarkInfo[ucIndex++],
-                studentInfo[ulIndex].fMarkInfo[ucIndex++],
-                studentInfo[ulIndex].fMarkInfo[ucIndex++],
-                studentInfo[ulIndex].fMarkInfo[ucIndex++],
                 studentInfo[ulIndex].fSum,
                 studentInfo[ulIndex].fAverage);
+                for(ucIndex = 0 ; ucIndex< NO_OF_SUBJECT; ucIndex++)
+                    {
+                    printf("%.02f|",
+                    studentInfo[ulIndex].fMarkInfo[ucIndex]);
+                    }
 
                 blReturnStatus = true;
                 }
+
             }
         }
         return blReturnStatus;
@@ -207,8 +208,8 @@ bool studentSearchByName(uint8_t *pcName)
 */ 
 static int studentCompareByName(const void *pInputA, const void *pInputB)
     {
-    student *psStudentA = (const struct student *)pInputA;
-    student *psStudentB = (const struct student *)pInputB;
+    const struct student *psStudentA = (const struct student *)pInputA;
+    const struct student *psStudentB = (const struct student *)pInputB;
     return strcmp((const char *)psStudentA->ucStudentName, 
     (const char *)psStudentB->ucStudentName); 
     }
@@ -238,7 +239,7 @@ void studentSortByName(void)
             studentInfo[ulIndex].ucStudentName);
         }
     } 
-    /*******************************************************************************
+/*******************************************************************************
 *
 * studentCompareByRollNumber - compare the student rollnumber
 * DESCRIPTION
@@ -254,8 +255,8 @@ void studentSortByName(void)
 */ 
 static int studentCompareByRollNumber(const void *pInputA, const void *pInputB)
     {
-    student *psStudentA = (const struct student *)pInputA;
-    student *psStudentB = (const struct student *)pInputB;
+    const struct student *psStudentA = (const struct student *)pInputA;
+    const struct student *psStudentB = (const struct student *)pInputB;
     return (psStudentA ->ulRollNumber - psStudentB ->ulRollNumber);
     }
 /*******************************************************************************
@@ -301,8 +302,8 @@ void studentSortByRollNumber(void)
 */ 
 static int studentCompareByRank(const void *pInputA, const void *pInputB)
     {
-    student *psStudentA = (const struct student *)pInputA;
-    student *psStudentB = (const struct student *)pInputB;
+    const student *psStudentA = (const struct student *)pInputA;
+    const student *psStudentB = (const struct student *)pInputB;
     return (psStudentA ->fSum - psStudentB ->fSum);
     }
 /*******************************************************************************
@@ -347,7 +348,7 @@ void studentSortByRank(void)
 *
 * ERRNO     : N/A
 */
-bool studentDeleteAll(void)
+void studentDeleteAll(void)
     {
     ulRecordCount = 0;
     memset(&studentInfo, 0, sizeof(student));
@@ -367,11 +368,10 @@ bool studentDeleteAll(void)
 *
 * ERRNO     : N/A
 */
-bool studentDeleteByName(uint8_t* pucName)
+bool studentDeleteByName(const uint8_t* pucName)
     {
     uint32_t ulIndex = 0;
     uint32_t ulJindex = 0;
-    uint8_t ucIndex = 0;
     uint8_t ucFound = 0;
 
     bool blReturnStatus = false;
@@ -379,8 +379,8 @@ bool studentDeleteByName(uint8_t* pucName)
         {
         for(ulIndex = 0; ulIndex < ulRecordCount; ulIndex++, ulJindex++)
             {
-            if(0 == strncmp(studentInfo[ulIndex].ucStudentName, 
-             pucName, strlen(pucName)))
+            if(0 == strncmp((char *)studentInfo[ulIndex].ucStudentName, 
+             (char *)pucName, strlen((char *)pucName)))
                 {
                   ucFound = 1 ;
                   ulIndex++;
@@ -416,7 +416,6 @@ bool studentDeleteByRollNumber(uint32_t ulRoll)
     {
     uint32_t ulIndex = 0;
     uint32_t ulJindex = 0;
-    uint8_t ucIndex = 0;
     uint8_t ucFound = 0;
 
     bool blReturnStatus = false;
