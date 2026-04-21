@@ -23,6 +23,14 @@ This will be responsible for calling strudent record menu.
 
 int main(void)
     {
-    menuMain();
+    bool blReturnStatus = false; 
+
+    blReturnStatus = menuMain();
+
+    if(false == blReturnStatus)
+        {
+        printf("Existing from the menu.Stopped excution\n");
+        }
+        
     return 1;
     }

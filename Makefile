@@ -7,7 +7,7 @@ LDFLAGS :=
 CPPCHECK := cppcheck
 # Path to the MISRA addon (standard path for many Linux distros)
 # You can also create a misra.json file to map specific rules.
-MISRA_ADDON := --addon=misra.json
+MISRA_ADDON := --addon=misra
 
 # --- Directories ---
 SRC_DIR := source
@@ -19,7 +19,7 @@ SRC_FILES += main.c
 OBJ_FILES := $(patsubst %.c, $(OBJ_DIR)/%.o, $(notdir $(SRC_FILES)))
 
 # --- Output Name ---
-TARGET := my_program
+TARGET := test
 
 # --- Rules ---
 

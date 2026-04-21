@@ -8,6 +8,7 @@
 /* defines */
 #define MAX_STUDENT_COUNT   100U
 #define MAX_STUDENT_NAME    50U
+#define MAX_STUDENT_ADDR    150U
 #define NO_OF_SUBJECT       10U
 
 /* typedef */
@@ -19,6 +20,7 @@ typedef struct student
     float fSum;
     float fAverage;
     int8_t ucDeleted;
+    char *pcAddress;
     }student;
 
 /* function declaration */
@@ -28,10 +30,10 @@ extern bool studentAdd(student* pstInfo);
 extern bool studentGetCount(uint32_t* pulCount);
 extern bool studentGetAvgMarksOfSubjects(uint32_t* pucAvgMarks);
 extern bool studentSearchByName(const uint8_t *pcName);
-extern void studentSortByName(void);
-extern void studentSortByRank(void);
-extern void studentSortByRollNumber(void);
-extern bool studentDeleteByName(uint8_t* pucName);
+extern bool studentSortByName(void);
+extern bool studentSortByRank(void);
+extern bool studentSortByRollNumber(void);
+extern bool studentDeleteByName(const uint8_t* pucName);
 extern bool studentDeleteByRollNumber(uint32_t ulRoll);
 extern void studentDeleteAll(void);
 #endif                                                         /*__INCstudenth*/

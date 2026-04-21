@@ -34,9 +34,9 @@ bool studentAdd(student* pstInfo);
 bool studentGetCount(uint32_t* pulCount);
 bool studentGetAvgMarksOfSubjects(uint32_t* pucAvgMarks);
 bool studentSearchByName(const uint8_t *pcName);
-void studentSortByName(void);
-void studentSortByRank(void);
-void studentSortByRollNumber(void);
+bool studentSortByName(void);
+bool studentSortByRank(void);
+bool studentSortByRollNumber(void);
 bool studentDeleteByName(const uint8_t* pucName);
 bool studentDeleteByRollNumber(uint32_t ulRoll);
 void studentDeleteAll(void);
@@ -60,6 +60,7 @@ bool studentAdd(student* pstInfo)
     {
     bool blSaveStatus = false;
     uint8_t ucIndex = 0;
+
     if(pstInfo != NULL)
         {
         strncpy((char*)studentInfo[ulRecordCount].ucStudentName, 
@@ -71,8 +72,8 @@ bool studentAdd(student* pstInfo)
             {
             studentInfo[ulRecordCount].fMarkInfo[ucIndex] = 
                 pstInfo->fMarkInfo[ucIndex];
-
             }
+
         for(ucIndex = 0; ucIndex < NO_OF_SUBJECT; ucIndex++)
             {
             studentInfo[ulRecordCount].fSum +=   pstInfo->fMarkInfo[ucIndex]; 
@@ -80,12 +81,11 @@ bool studentAdd(student* pstInfo)
         
         studentInfo[ulRecordCount].fAverage =  studentInfo[ulRecordCount].fSum 
                                         / NO_OF_SUBJECT;
-        studentInfo[ulRecordCount].ucDeleted = 0;
         ulRecordCount++;
         blSaveStatus = true;
         }
+
         return blSaveStatus;
-    
     }
 /*******************************************************************************
 *
@@ -104,11 +104,13 @@ bool studentAdd(student* pstInfo)
 bool studentGetCount(uint32_t* pulCount)
     {
     bool ulReturnStatus = false;
+
     if(NULL!= pulCount)
         {
         *pulCount = ulRecordCount;
         ulReturnStatus = true;
         }
+
         return ulReturnStatus;
     }
 /*******************************************************************************
@@ -132,6 +134,7 @@ bool studentGetAvgMarksOfSubjects(uint32_t* pucAvgMarks)
     float fAverageMark = 0.00;
     float fTotalMark = 0.00;
     uint32_t ulMarks = 0;
+
     if(NULL != pucAvgMarks)
         {
         for(ulIndex = 0; ulIndex < ulRecordCount; ulIndex++)
@@ -143,6 +146,7 @@ bool studentGetAvgMarksOfSubjects(uint32_t* pucAvgMarks)
         *pucAvgMarks = ulMarks;
         blReturnStatus = true;         
         }
+
         return blReturnStatus;
     }
     
@@ -164,8 +168,8 @@ bool studentSearchByName(const uint8_t *pcName)
     {
     uint32_t ulIndex = 0;
     uint8_t ucIndex = 0;
-    
     bool blReturnStatus = false;
+
     if(NULL != pcName)
         {
         for(ulIndex = 0; ulIndex < ulRecordCount; ulIndex++)
@@ -179,6 +183,7 @@ bool studentSearchByName(const uint8_t *pcName)
                 studentInfo[ulIndex].ucStudentName,
                 studentInfo[ulIndex].fSum,
                 studentInfo[ulIndex].fAverage);
+
                 for(ucIndex = 0 ; ucIndex< NO_OF_SUBJECT; ucIndex++)
                     {
                     printf("%.02f|",
@@ -187,9 +192,9 @@ bool studentSearchByName(const uint8_t *pcName)
 
                 blReturnStatus = true;
                 }
-
             }
         }
+
         return blReturnStatus;
     }
 /*******************************************************************************
@@ -227,17 +232,26 @@ static int studentCompareByName(const void *pInputA, const void *pInputB)
 *
 * ERRNO     : N/A
 */
-void studentSortByName(void)
+bool studentSortByName(void)
     {
     uint32_t ulIndex =0;
-    qsort(studentInfo, ulRecordCount, sizeof(student), studentCompareByName);
-    printf("Sorted By Name \n");
-    for(ulIndex = 0; ulIndex < ulRecordCount; ulIndex++)
+    bool ulReturnStatus = false;
+
+    if(ulRecordCount > 0)
         {
-         printf("Roll Number %d Name : %s",
+        qsort(studentInfo, ulRecordCount, sizeof(student), studentCompareByName);
+        printf("Sorted By Name \n");
+
+        for(ulIndex = 0; ulIndex < ulRecordCount; ulIndex++)
+            {
+            printf("Roll Number %d Name : %s",
             studentInfo[ulIndex].ulRollNumber,
             studentInfo[ulIndex].ucStudentName);
+            }
+        ulReturnStatus = true;
         }
+
+    return  ulReturnStatus;
     } 
 /*******************************************************************************
 *
@@ -273,20 +287,29 @@ static int studentCompareByRollNumber(const void *pInputA, const void *pInputB)
 *
 * ERRNO     : N/A
 */
-void studentSortByRollNumber(void)
+bool studentSortByRollNumber(void)
     {
     uint32_t ulIndex =0;
-    qsort(studentInfo, ulRecordCount, sizeof(student), 
-    studentCompareByRollNumber);
-    printf("Sorted By RollNumber \n");
-    for(ulIndex = 0; ulIndex < ulRecordCount; ulIndex++)
+    bool ulReturnStatus = false;
+
+    if(0 < ulRecordCount)
         {
-         printf("Roll Number %d Name : %s",
+        qsort(studentInfo, ulRecordCount, sizeof(student), 
+        studentCompareByRollNumber);
+        printf("Sorted By RollNumber \n");
+
+        for(ulIndex = 0; ulIndex < ulRecordCount; ulIndex++)
+            {
+            printf("Roll Number %d Name : %s",
             studentInfo[ulIndex].ulRollNumber,
             studentInfo[ulIndex].ucStudentName);
+            }
+            ulReturnStatus= true;
         }
+
+    return ulReturnStatus;
     } 
-    /*******************************************************************************
+/*******************************************************************************
 *
 * studentCompareByRank - compare the student rank
 * DESCRIPTION
@@ -320,19 +343,27 @@ static int studentCompareByRank(const void *pInputA, const void *pInputB)
 *
 * ERRNO     : N/A
 */
-void studentSortByRank(void)
+bool studentSortByRank(void)
     {
     uint32_t ulIndex =0;
-    qsort(studentInfo, ulRecordCount, sizeof(student), studentCompareByRank);
-    printf("Sorted By Name \n");
-    for(ulIndex = 0; ulIndex < ulRecordCount; ulIndex++)
+    bool blReturnStatus = false;
+
+    if( 0 < ulRecordCount)
         {
-         printf("Roll Number %d Name : %s mark: %.02f",
+        qsort(studentInfo, ulRecordCount, sizeof(student), studentCompareByRank);
+        printf("Sorted By Name \n");
+
+        for(ulIndex = 0; ulIndex < ulRecordCount; ulIndex++)
+            {
+             printf("Roll Number %d Name : %s mark: %.02f",
             studentInfo[ulIndex].ulRollNumber,
             studentInfo[ulIndex].ucStudentName,
-            studentInfo[ulIndex].fSum
-        );
+            studentInfo[ulIndex].fSum);
+            }
+            blReturnStatus = true;
         }
+
+        return blReturnStatus;
     }
 /*******************************************************************************
 *
@@ -350,6 +381,16 @@ void studentSortByRank(void)
 */
 void studentDeleteAll(void)
     {
+    uint32_t ulIndex =0;
+
+    for(ulIndex = 0; ulIndex < ulRecordCount; ulIndex++)
+        {
+        if(NULL != studentInfo[ulIndex].pcAddress)
+            {
+            free(studentInfo[ulIndex].pcAddress);
+            studentInfo[ulIndex].pcAddress =NULL;
+            }
+        }
     ulRecordCount = 0;
     memset(&studentInfo, 0, sizeof(student));
     } 
@@ -373,8 +414,8 @@ bool studentDeleteByName(const uint8_t* pucName)
     uint32_t ulIndex = 0;
     uint32_t ulJindex = 0;
     uint8_t ucFound = 0;
-
     bool blReturnStatus = false;
+
     if(NULL != pucName)
         {
         for(ulIndex = 0; ulIndex < ulRecordCount; ulIndex++, ulJindex++)
@@ -382,6 +423,11 @@ bool studentDeleteByName(const uint8_t* pucName)
             if(0 == strncmp((char *)studentInfo[ulIndex].ucStudentName, 
              (char *)pucName, strlen((char *)pucName)))
                 {
+                  if(NULL != studentInfo[ulIndex].pcAddress)
+                    {
+                        free(studentInfo[ulIndex].pcAddress);
+                        studentInfo[ulIndex].pcAddress= NULL;
+                    }
                   ucFound = 1 ;
                   ulIndex++;
                   ulRecordCount --;
@@ -393,8 +439,11 @@ bool studentDeleteByName(const uint8_t* pucName)
                     }
                 }
                 if(ucFound == 1)
-                blReturnStatus = true;
+                    {
+                    blReturnStatus = true;
+                    }
             }
+
             return  blReturnStatus;
     }
 
@@ -417,17 +466,22 @@ bool studentDeleteByRollNumber(uint32_t ulRoll)
     uint32_t ulIndex = 0;
     uint32_t ulJindex = 0;
     uint8_t ucFound = 0;
-
     bool blReturnStatus = false;
+
     if(0 != ulRoll)
         {
         for(ulIndex = 0; ulIndex < ulRecordCount; ulIndex++, ulJindex++)
             {
             if(ulRoll == studentInfo[ulIndex].ulRollNumber)
                 {
-                  ucFound = 1 ;
-                  ulIndex++;
-                  ulRecordCount --;
+                if(NULL != studentInfo[ulIndex].pcAddress)
+                    {
+                        free(studentInfo[ulIndex].pcAddress);
+                        studentInfo[ulIndex].pcAddress= NULL;
+                    }
+                ucFound = 1 ;
+                ulIndex++;
+                ulRecordCount --;
                 } 
                 if(ucFound == 1)
                     {
@@ -438,6 +492,7 @@ bool studentDeleteByRollNumber(uint32_t ulRoll)
                 if(ucFound == 1)
                 blReturnStatus = true;
             }
+
             return  blReturnStatus;
     }
     

@@ -29,16 +29,15 @@ Search by name - roll number and rank, Delete by name -roll number - all.
 /* globals */
 
 /* locals */
-
 static bool menuStudentOverview(void);
 static int32_t menuGetRollNumber(void);
-static bool menuGetStudentName(char *cBuff);
-static float menuGetmark(char *cShowLabel);
+static bool menuGetStudentName(uint8_t *cBuff);
+static float menuGetmark(const char *cShowLabel);
 static bool menuAddStudent(void);
 static bool menuListStudent(void);
 static bool menuDeleteStudent(void);
-static bool DisplayMenu(const STUDENT_MENU *stMenuItemPass);
-static uint32_t GetChoiceFromUser(void);
+static bool DisplayMenu(const void *pMenuData);
+static uint8_t GetChoiceFromUser(void);
 static bool menuListSearchByName(void);
 static bool menuListSortByName(void);
 static bool menuListSortByRoll(void);
@@ -46,6 +45,7 @@ static bool menuDeleteByRoll(void);
 static bool menuDeleteByName(void);
 static bool menuDeleteAll(void);
 static bool menuListSortByRank(void);
+bool menuGetStudentAddress (char *cBuff);
 enum _STUDMENU_ENUM
 {
     STUDMENU_OVERVIEW = 1,
@@ -121,6 +121,7 @@ const STUDENT_DEL stMenuDel[] =
          .pMenuOperation = menuDeleteAll
         },
     };
+
 /* forward declaration */
 bool menuMain(void);
 
@@ -141,27 +142,27 @@ bool menuMain(void);
 */
 bool menuMain(void)
     {
-    uint32_t ulChoice = 0;
+    uint8_t ucChoice = 0;
+    bool blReturnStatus = false;
+
     while (1)
-    {
-        if (true == DisplayMenu(stMenuItem))
         {
-            ulChoice = GetChoiceFromUser();
-            printf("%u\n\n", ulChoice);
-            if ((MENU_START_INDEX < ulChoice) && (MENU_END_INDEX > ulChoice))
+        if (true == DisplayMenu(stMenuItem))
             {
-                ulChoice -=1;
-                stMenuItem[ulChoice].pMenuOperation();
-            }
+            ucChoice = GetChoiceFromUser();
+            if ((MENU_START_INDEX < ucChoice) && (MENU_END_INDEX > ucChoice))
+                {
+                stMenuItem[ucChoice].pMenuOperation();
+                blReturnStatus = true;
+                }
             else
-            {
-                printf("Invalid choice exiting from menu...\n");
+                {
                 break;
+                }
             }
         }
-    }
 
-    return true;
+    return blReturnStatus;
     }
 /*******************************************************************************
 *
@@ -178,18 +179,18 @@ bool menuMain(void)
 *
 * ERRNO     : N/A
 */
-static uint32_t GetChoiceFromUser(void)
+static uint8_t GetChoiceFromUser(void)
     {
-    uint32_t ulChoice = 0;
+    uint8_t ucChoice = 0;
     int32_t ulChar = 0;
     char cChoiceBuffer[CHOICE_BUFFER_LEN] = {0};
 
     printf(" Enter your choice \n");
     memset(cChoiceBuffer, 0, CHOICE_BUFFER_LEN);
 
-    if (NULL != fgets(cChoiceBuffer, CHOICE_LEN, stdin))
+    if (NULL != fgets(cChoiceBuffer, sizeof(cChoiceBuffer), stdin))
         {
-        sscanf(cChoiceBuffer, "%u", &ulChoice);
+        sscanf(cChoiceBuffer, "%c", &ucChoice);
 
         if (NULL == strchr(cChoiceBuffer, '\n') )
             {
@@ -198,7 +199,7 @@ static uint32_t GetChoiceFromUser(void)
             }
         }
 
-    return (ulChoice);
+    return (ucChoice);
     }
 /*******************************************************************************
 *
@@ -217,22 +218,22 @@ static uint32_t GetChoiceFromUser(void)
 */
 static bool DisplayMenu
     (
-    const STUDENT_MENU *stMenuItemPass
+    const void *pMenuData
     )       
     {
     uint32_t ulIndex = 0;                              
     bool blReturnValue = false;
-
+    const STUDENT_MENU *stMenuItemPass = (const STUDENT_MENU *)pMenuData;
     if (NULL != stMenuItemPass)
-    {
-        for (ulIndex = 0; ulIndex < MENU_ITEMS; ulIndex++)
         {
+        for (ulIndex = 0; ulIndex < MENU_ITEMS; ulIndex++)
+            {
             printf("%u .%s\n", stMenuItemPass[ulIndex].ulIndex,
                    stMenuItemPass[ulIndex].cMenuLabel);
-        }
+            }
 
         blReturnValue = true;
-    }
+        }
 
     return blReturnValue;
 }
@@ -263,11 +264,14 @@ static bool menuStudentOverview(void)
         }
     else
         {
-            studentGetAvgMarksOfSubjects(&ulAverageMark);
-            printf("Total Record Count = %u\n", ulActiveCount);
-            printf("Average Mark = %u\n",ulAverageMark);
-            blReturnStatus = true;
+            if(true == studentGetAvgMarksOfSubjects(&ulAverageMark))
+                {
+                printf("Total Record Count = %u\n", ulActiveCount);
+                printf("Average Mark = %u\n",ulAverageMark);
+                blReturnStatus = true;
+                }
         }
+
     return blReturnStatus;
     }
 /*******************************************************************************
@@ -290,24 +294,34 @@ static bool menuAddStudent(void)
     uint8_t ucIndex = 0;
     student pstInfo;
     bool blReturnStatus = false;
-    char LabelBuff[LABEL_MAX];
+    char LabelBuff[LABEL_MAX] = {0};
+    char cAddressBuff[MAX_STUDENT_ADDR] = {0};
+    char *cAddressPtr = NULL;
 
     memset(&pstInfo, 0, sizeof(student));
-    menuGetStudentName((const char *)pstInfo.ucStudentName);
-    pstInfo.ulRollNumber = menuGetRollNumber();
-
-    for(ucIndex = 0; ucIndex < NO_OF_SUBJECT; ucIndex++)
+    if(true == menuGetStudentName((uint8_t *)pstInfo.ucStudentName))
         {
-        memset(LabelBuff, 0,sizeof(LabelBuff));
-        snprintf(LabelBuff, sizeof(LabelBuff),
-        (char *)"Enter mark for subject %d :", 
-        ucIndex + 1);
-        pstInfo.fMarkInfo[ucIndex] = menuGetmark(LabelBuff);
+        pstInfo.ulRollNumber = menuGetRollNumber();
+        for(ucIndex = 0; ucIndex < NO_OF_SUBJECT; ucIndex++)
+            {
+            memset(LabelBuff, 0,sizeof(LabelBuff));
+            snprintf(LabelBuff, sizeof(LabelBuff),
+            (char *)"Enter mark for subject %d :", 
+            ucIndex + 1);
+            pstInfo.fMarkInfo[ucIndex] = menuGetmark(LabelBuff);
+            }
+            if(true == menuGetStudentAddress(cAddressBuff))
+                {
+                cAddressPtr = malloc(strlen(cAddressBuff) * sizeof(char)); 
+                cAddressPtr = cAddressBuff;
+                pstInfo.pcAddress = cAddressPtr;
+                }
+        }
+        if(true == studentAdd(&pstInfo))
+        {
+        blReturnStatus = true;
         }
     
-    studentAdd(&pstInfo);
-    blReturnStatus = true;
-
     return blReturnStatus;
     }
 /*******************************************************************************
@@ -327,18 +341,20 @@ static bool menuAddStudent(void)
 */
 bool menuGetStudentName
     (
-    char *cBuff
+    uint8_t *cBuff
     )
     {
     bool blReturnStatus = false;
+
     if(cBuff != NULL)
         {
         printf("Enter student name : \n");
-        if (NULL != fgets(cBuff, MAX_STUDENT_NAME, stdin))
+        if (NULL != fgets((char *)cBuff, MAX_STUDENT_NAME, stdin))
             {
                 blReturnStatus = true;
             }
         }
+
         return blReturnStatus;
     }
 /*******************************************************************************
@@ -374,6 +390,7 @@ int32_t menuGetRollNumber(void)
             && (ulRollNumber != EOF));
             }
         }
+
         return ulRollNumber;
     }
 /*******************************************************************************
@@ -399,6 +416,7 @@ float menuGetmark
     char cMarkBuff[MARK_LEN] = {0};   
     float fMarkInfo = 0;
     char *endptr = NULL;
+
     memset(cMarkBuff, 0, MARK_LEN);
 
     if(cShowLabel != NULL)
@@ -409,11 +427,12 @@ float menuGetmark
             fMarkInfo = strtof(cMarkBuff, &endptr);
             if (strchr(cMarkBuff, '\n') == NULL) 
                 {
-                int c;
+                int8_t c;
                 while ((c = getchar()) != '\n' && c != EOF);
                 }
             }
         }
+
         return fMarkInfo;
     }
 /*******************************************************************************
@@ -448,11 +467,12 @@ static bool menuListStudent(void)
                 }
             else
                 {
-                printf("Invalid choice exiting from menu...\n");
+                printf("Invalid choice exiting from submenu...\n");
                 break;
                 }
             }
         }
+
         return true;
     }
 /*******************************************************************************
@@ -473,12 +493,14 @@ static bool menuListStudent(void)
 static bool menuDeleteStudent(void)
     {
     uint32_t ulChoice = 0;
+
     while (1)
         {
         if (true == DisplayMenu(stMenuDel))
             {
             ulChoice = GetChoiceFromUser();
             printf("%u\n\n", ulChoice);
+
             if ((MENU_DELETE_START < ulChoice) && (MENU_DELETE_END > ulChoice))
                 {
                 ulChoice -=1;
@@ -491,6 +513,7 @@ static bool menuDeleteStudent(void)
                 }
             }
         }
+
         return true;
     }
 /*******************************************************************************
@@ -531,7 +554,8 @@ static bool menuDeleteAll(void)
 static bool menuListSearchByName(void)
     {
     bool blReturnStatus = false;
-    char *cNameBuff[MAX_STUDENT_NAME];
+    uint8_t cNameBuff[MAX_STUDENT_NAME] = {0};
+
     if(true == menuGetStudentName(cNameBuff))
         {
         if(false == studentSearchByName(cNameBuff))
@@ -543,6 +567,7 @@ static bool menuListSearchByName(void)
             blReturnStatus = true;   
             }   
         }
+
     return blReturnStatus;
     }
 /*******************************************************************************
@@ -561,7 +586,14 @@ static bool menuListSearchByName(void)
 */
 static bool menuListSortByName(void)
     {
-    studentSortByName();
+    bool ulReturStatus = false;
+
+    if(true == studentSortByName())
+        {
+            ulReturStatus = true;
+        }
+
+    return ulReturStatus;
     }
 /*******************************************************************************
 *
@@ -579,7 +611,18 @@ static bool menuListSortByName(void)
 */
 static bool menuListSortByRoll(void)
     {
-    studentSortByRollNumber();  
+    bool ulReturStatus = false;
+
+    if(false == studentSortByRollNumber())
+        {
+        printf("no record found \n");
+        }
+    else
+        {
+        ulReturStatus = true;    
+        } 
+    
+        return ulReturStatus;
     }
 /*******************************************************************************
 *
@@ -598,6 +641,7 @@ static bool menuListSortByRoll(void)
 static bool menuListSortByRank(void)
     {
     studentSortByRank();
+    return true;
     }
 /*******************************************************************************
 *
@@ -616,10 +660,11 @@ static bool menuListSortByRank(void)
 static bool menuDeleteByName(void)
     {
     bool blReturnStatus = false;
-    char *cNameBuff[MAX_STUDENT_NAME];
+    uint8_t cNameBuff[MAX_STUDENT_NAME];
+
     if(true == menuGetStudentName(cNameBuff))
         {
-        if(true == studentDeleteByName(cNameBuff))
+        if(true == studentDeleteByName((uint8_t *)cNameBuff))
             {
             printf("record deleted \n");  
             blReturnStatus = true; 
@@ -629,6 +674,7 @@ static bool menuDeleteByName(void)
             printf("record not found \n");
             }
         }
+
         return blReturnStatus;
     }
 /*******************************************************************************
@@ -648,15 +694,59 @@ static bool menuDeleteByName(void)
 static bool menuDeleteByRoll(void)
     {
     int32_t ulRollNumber = 0;
+    bool blReturnStatus = false;
+
     ulRollNumber = menuGetRollNumber();
+    if(0 != ulRollNumber)
         {
         if(true == studentDeleteByRollNumber(ulRollNumber))
             {
             printf("record deleted \n");
+            blReturnStatus = true;
             }
         else
             {
             printf("record not found \n");
             }
         }
+
+        return blReturnStatus;
+    }
+/*******************************************************************************
+*
+* menuGetStudentAddress - for getting student address
+*
+* DESCRIPTION
+* The function is used to get student address
+* 
+* PARAMETER : pointer
+*
+* GLOBALS   : N/A
+*
+* RETURNS   : On success - true On faiure - false
+*
+* ERRNO     : N/A
+*/
+bool menuGetStudentAddress
+    (
+    char *cBuff
+    )
+    {
+    bool blReturnStatus = false;
+
+    if(cBuff != NULL) 
+        {
+        printf("Enter student address : \n");
+        if (NULL != fgets(cBuff, MAX_STUDENT_ADDR, stdin))
+            {
+                blReturnStatus = true;
+            }
+        
+        if (strchr(cBuff, '\n') == NULL) 
+            {
+                int8_t c;
+                while ((c = getchar()) != '\n' && c != EOF);
+            }
+        }
+        return blReturnStatus;
     }
