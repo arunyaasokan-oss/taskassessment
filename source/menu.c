@@ -36,7 +36,7 @@ static float menuGetmark(const char *cShowLabel);
 static bool menuAddStudent(void);
 static bool menuListStudent(void);
 static bool menuDeleteStudent(void);
-static bool DisplayMenu(const void *pMenuData);
+static bool DisplayMenu(const void *pMenuData, uint32_t ulMenuCount);
 static uint8_t GetChoiceFromUser(void);
 static bool menuListSearchByName(void);
 static bool menuListSortByName(void);
@@ -147,11 +147,13 @@ bool menuMain(void)
 
     while (1)
         {
-        if (true == DisplayMenu(stMenuItem))
+        if (true == DisplayMenu(stMenuItem, 
+            sizeof(stMenuItem) / sizeof(stMenuItem[0])))
             {
             ucChoice = GetChoiceFromUser();
             if ((MENU_START_INDEX < ucChoice) && (MENU_END_INDEX > ucChoice))
                 {
+                ucChoice =- 1;
                 stMenuItem[ucChoice].pMenuOperation();
                 blReturnStatus = true;
                 }
@@ -181,7 +183,7 @@ bool menuMain(void)
 */
 static uint8_t GetChoiceFromUser(void)
     {
-    uint8_t ucChoice = 0;
+    uint32_t ulChoice = 0;
     int32_t ulChar = 0;
     char cChoiceBuffer[CHOICE_BUFFER_LEN] = {0};
 
@@ -190,7 +192,7 @@ static uint8_t GetChoiceFromUser(void)
 
     if (NULL != fgets(cChoiceBuffer, sizeof(cChoiceBuffer), stdin))
         {
-        sscanf(cChoiceBuffer, "%c", &ucChoice);
+        sscanf(cChoiceBuffer, "%u", &ulChoice);
 
         if (NULL == strchr(cChoiceBuffer, '\n') )
             {
@@ -199,7 +201,7 @@ static uint8_t GetChoiceFromUser(void)
             }
         }
 
-    return (ucChoice);
+    return ((uint8_t)ulChoice);
     }
 /*******************************************************************************
 *
@@ -218,7 +220,8 @@ static uint8_t GetChoiceFromUser(void)
 */
 static bool DisplayMenu
     (
-    const void *pMenuData
+    const void *pMenuData,
+    uint32_t ulMenuCount
     )       
     {
     uint32_t ulIndex = 0;                              
@@ -226,7 +229,7 @@ static bool DisplayMenu
     const STUDENT_MENU *stMenuItemPass = (const STUDENT_MENU *)pMenuData;
     if (NULL != stMenuItemPass)
         {
-        for (ulIndex = 0; ulIndex < MENU_ITEMS; ulIndex++)
+        for (ulIndex = 0; ulIndex < ulMenuCount; ulIndex++)
             {
             printf("%u .%s\n", stMenuItemPass[ulIndex].ulIndex,
                    stMenuItemPass[ulIndex].cMenuLabel);
@@ -456,7 +459,8 @@ static bool menuListStudent(void)
     uint32_t ulChoice = 0;
     while (1)
         {
-        if (true == DisplayMenu(stMenuList))
+        if (true == DisplayMenu(stMenuList,
+            sizeof(stMenuList) / sizeof(stMenuList[0])))
             {
             ulChoice = GetChoiceFromUser();
             printf("%u\n\n", ulChoice);
@@ -496,7 +500,8 @@ static bool menuDeleteStudent(void)
 
     while (1)
         {
-        if (true == DisplayMenu(stMenuDel))
+        if (true == DisplayMenu(stMenuDel,
+            sizeof(stMenuDel) / sizeof(stMenuDel[0])))
             {
             ulChoice = GetChoiceFromUser();
             printf("%u\n\n", ulChoice);
